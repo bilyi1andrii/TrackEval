@@ -1,19 +1,13 @@
-import sys
 import os
 import csv
-import argparse
-import configparser
-from multiprocessing import freeze_support
-
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import trackeval
-from trackeval.utils import TrackEvalException
+from .mot_challenge_2d_box import MotChallenge2DBox
+from ..utils import TrackEvalException
 
 
-class VisDroneMOT(trackeval.datasets.MotChallenge2DBox):
+class VisDroneMOT(MotChallenge2DBox):
     """
     Class-agnostic VisDrone MOT evaluation over the 5 official MOT classes:
     pedestrian, car, van, truck, bus
@@ -26,7 +20,7 @@ class VisDroneMOT(trackeval.datasets.MotChallenge2DBox):
 
     @staticmethod
     def get_default_dataset_config():
-        cfg = trackeval.datasets.MotChallenge2DBox.get_default_dataset_config()
+        cfg = MotChallenge2DBox.get_default_dataset_config()
         cfg["CLASSES_TO_EVAL"] = ["pedestrian"]
         cfg["BENCHMARK"] = "VisDrone-val"
         cfg["DO_PREPROC"] = True
