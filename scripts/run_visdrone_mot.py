@@ -15,7 +15,7 @@ if __name__ == "__main__":
     default_eval_config["DISPLAY_LESS_PROGRESS"] = False
 
     default_dataset_config = VisDroneMOT.get_default_dataset_config()
-    default_dataset_config["CLASSES_TO_EVAL"] = ["pedestrian"]
+    default_dataset_config["CLASSES_TO_EVAL"] = ["unified"]
 
     default_metrics_config = {
         "METRICS": ["HOTA", "CLEAR", "Identity"],
