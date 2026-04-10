@@ -21,7 +21,7 @@ class VisDroneMOT(MotChallenge2DBox):
     @staticmethod
     def get_default_dataset_config():
         cfg = MotChallenge2DBox.get_default_dataset_config()
-        cfg["CLASSES_TO_EVAL"] = ["unified"]
+        cfg["CLASSES_TO_EVAL"] = ["pedestrian"]
         cfg["BENCHMARK"] = "VisDrone-val"
         cfg["DO_PREPROC"] = True
         cfg["IGNORE_IOA_THRESHOLD"] = 0.5
@@ -29,9 +29,9 @@ class VisDroneMOT(MotChallenge2DBox):
 
     def __init__(self, config=None):
         super().__init__(config)
-        self.valid_classes = ["unified"]
-        self.class_list = ["unified"]
-        self.class_name_to_class_id = {"unified": 1}
+        self.valid_classes = ["pedestrian"]
+        self.class_list = ["pedestrian"]
+        self.class_name_to_class_id = {"pedestrian": 1}
         self.valid_class_numbers = [1]
         self.ignore_ioa_threshold = float(self.config.get("IGNORE_IOA_THRESHOLD", 0.5))
 
