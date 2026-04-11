@@ -96,6 +96,7 @@ class VisDroneMOT(MotChallenge2DBox):
         det = VisDroneMOT._xywh_to_xyxy(det_boxes)
         ign = VisDroneMOT._xywh_to_xyxy(ignore_boxes)
 
+        # Broadcasting, (N, 1) x (1, M) -> (N, M)
         inter_x1 = np.maximum(det[:, None, 0], ign[None, :, 0])
         inter_y1 = np.maximum(det[:, None, 1], ign[None, :, 1])
         inter_x2 = np.minimum(det[:, None, 2], ign[None, :, 2])
@@ -106,6 +107,8 @@ class VisDroneMOT(MotChallenge2DBox):
         inter = inter_w * inter_h
 
         det_area = np.maximum((det[:, 2] - det[:, 0]) * (det[:, 3] - det[:, 1]), 1e-10)
+
+        # Broadcasting makes the column from det_area stretch horizontally, (N, 1) -> (N, M)
         ioa = inter / det_area[:, None]
         return ioa.astype(np.float32)
 
@@ -151,9 +154,14 @@ class VisDroneMOT(MotChallenge2DBox):
 
             if len(gt_ids_kept) > 0 and len(tracker_ids) > 0:
                 matching_scores = sim_kept.copy()
+
+                # a small epsilon to ensure correct math, e.g. 0.4999996 case
                 matching_scores[matching_scores < 0.5 - np.finfo(float).eps] = 0
 
+                # High IOU = good, HA minimizes, so pass the inverted matrix
                 match_rows, match_cols = linear_sum_assignment(-matching_scores)
+
+                # Filter only the correct pairs
                 matched_mask = (
                     matching_scores[match_rows, match_cols] > 0 + np.finfo(float).eps
                 )
@@ -166,17 +174,20 @@ class VisDroneMOT(MotChallenge2DBox):
                 unmatched_mask = np.ones(len(tracker_ids), dtype=bool)
                 unmatched_mask[matched_cols] = False
 
+                # Extract an array from tuple (array, )
                 unmatched_idxs = np.where(unmatched_mask)[0]
                 if len(unmatched_idxs) > 0:
                     unmatched_dets = tracker_dets[unmatched_idxs]
                     ioa = self._calculate_box_ioa(unmatched_dets, ignore_regions)
                     if ioa.size > 0:
+                        # Take the biggest IoA of unmatched detection with any ignored region
+                        # and compare it against a threshold
                         remove_unmatched = (
                             np.max(ioa, axis=1) > self.ignore_ioa_threshold
                         )
                         to_remove_tracker[unmatched_idxs[remove_unmatched]] = True
 
-            # apply tracker filtering
+            # apply tracker filtering via bitwise NOT
             data["tracker_ids"][t] = tracker_ids[~to_remove_tracker]
             data["tracker_dets"][t] = tracker_dets[~to_remove_tracker]
             data["tracker_confidences"][t] = tracker_confidences[~to_remove_tracker]
